@@ -1,6 +1,7 @@
 package ru.siblion.csvadapter;
 
 import org.apache.commons.cli.*;
+import ru.siblion.csvadapter.cli.OptionsProvider;
 import ru.siblion.csvadapter.config.DataBaseConfig;
 import ru.siblion.csvadapter.service.impl.CsvServiceImpl;
 import ru.siblion.csvadapter.service.impl.DBService;
@@ -18,7 +19,10 @@ public class CsvToDatabaseApp {
     public static final String PASSWORD = "password";
     public static final String SEPARATOR = "SEPARATOR";
 
+    OptionsProvider optionsProvider = new OptionsProvider();
+
     public void run(String[] args) {
+
 
         CommandLine commandLine = parseArguments(args);
 
@@ -33,7 +37,7 @@ public class CsvToDatabaseApp {
             String separator = commandLine.getOptionValue(SEPARATOR);
 
             CsvServiceImpl csvServiceImpl = new CsvServiceImpl(csvFileName);
-            boolean separatorProvidedWithArgs = !separator.isBlank();
+            boolean separatorProvidedWithArgs = separator!=null;
             if (separatorProvidedWithArgs) {
                 csvServiceImpl.setSeparator(separator);
             }
@@ -41,9 +45,9 @@ public class CsvToDatabaseApp {
             long startTime = System.nanoTime();
             listArr = csvServiceImpl.getRecords();
             long stopTime = System.nanoTime();
-            System.out.println((stopTime - startTime)/1000000000 + " seconds - Time to read csv / size:" + listArr.size());
-            DataBaseConfig dataBaseConfig = new DataBaseConfig(dbConnectionString,username,password);
-            DBService dbService = new DBService(tableName,dataBaseConfig);
+            System.out.println((stopTime - startTime) / 1000000000 + " seconds - Time to read csv / size:" + listArr.size());
+            DataBaseConfig dataBaseConfig = new DataBaseConfig(dbConnectionString, username, password);
+            DBService dbService = new DBService(tableName, dataBaseConfig);
             try {
                 dbService.insertIntoTable(listArr, 24);
             } catch (SQLException e) {
@@ -53,15 +57,14 @@ public class CsvToDatabaseApp {
             printAppHelp();
         }
     }
-    private CommandLine parseArguments(String[] args) {
 
-        Options options = getOptions();
+    private CommandLine parseArguments(String[] args) {
         CommandLine line = null;
 
         CommandLineParser parser = new DefaultParser();
 
         try {
-            line = parser.parse(options, args);
+            line = parser.parse(optionsProvider.getOptions(), args);
 
         } catch (ParseException ex) {
 
@@ -76,68 +79,9 @@ public class CsvToDatabaseApp {
     }
 
     private void printAppHelp() {
-
-        Options options = getOptions();
-
-        var formatter = new HelpFormatter();
-        formatter.printHelp("Parser", options, true);
+        HelpFormatter helpFormatter = new HelpFormatter();
+        helpFormatter.printHelp("Parser", optionsProvider.getOptions(), true);
     }
 
-    private Options getOptions() {
 
-        var options = new Options();
-        Option csvFile = Option
-            .builder("c")
-            .argName("CSV_FILE_PATH")
-            .longOpt("csv")
-            .desc("csv file to load data from")
-            .hasArg()
-            .build();
-        Option dbConnectionString = Option
-            .builder("d")
-            .argName("DB_CONNECTION_STRING")
-            .longOpt("database-connection-string")
-            .desc("database connection string")
-            .hasArg()
-            .build();
-        Option tableName = Option
-            .builder("t")
-            .argName("TABLE_NAME")
-            .longOpt("table-name")
-            .desc("table name")
-            .hasArg()
-            .required()
-            .build();
-        Option userName = Option
-            .builder("u")
-            .argName("USERNAME")
-            .longOpt("username")
-            .desc("database username")
-            .hasArg()
-            .required()
-            .build();
-        Option password = Option
-            .builder("p")
-            .argName("PASSWORD")
-            .longOpt("password")
-            .desc("database user password")
-            .hasArg()
-            .required()
-            .build();
-        Option separator = Option
-            .builder("s")
-            .argName("SEPARATOR")
-            .longOpt("separator")
-            .desc("separator symbol")
-            .hasArg()
-            .build();
-        options
-            .addOption(csvFile)
-            .addOption(tableName)
-            .addOption(userName)
-            .addOption(password)
-            .addOption(separator)
-            .addOption(dbConnectionString);
-        return options;
-    }
 }
