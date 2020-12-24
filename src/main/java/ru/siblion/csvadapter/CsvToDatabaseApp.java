@@ -16,6 +16,7 @@ public class CsvToDatabaseApp {
     public static final String TABLE_NAME = "table-name";
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
+    public static final String SEPARATOR = "SEPARATOR";
 
     public void run(String[] args) {
 
@@ -29,15 +30,18 @@ public class CsvToDatabaseApp {
             String tableName = commandLine.getOptionValue(TABLE_NAME);
             String username = commandLine.getOptionValue(USERNAME);
             String password = commandLine.getOptionValue(PASSWORD);
+            String separator = commandLine.getOptionValue(SEPARATOR);
 
             CsvServiceImpl csvServiceImpl = new CsvServiceImpl(csvFileName);
+            boolean separatorProvidedWithArgs = !separator.isBlank();
+            if (separatorProvidedWithArgs) {
+                csvServiceImpl.setSeparator(separator);
+            }
             List<String[]> listArr;
             long startTime = System.nanoTime();
             listArr = csvServiceImpl.getRecords();
             long stopTime = System.nanoTime();
-            System.out.println((stopTime - startTime) + " Stream Arr list size " + listArr.size());
-            System.out.println(listArr.get(0).length);
-            System.out.println(listArr.size());
+            System.out.println((stopTime - startTime)/1000000000 + " seconds - Time to read csv / size:" + listArr.size());
             DataBaseConfig dataBaseConfig = new DataBaseConfig(dbConnectionString,username,password);
             DBService dbService = new DBService(tableName,dataBaseConfig);
             try {
@@ -49,7 +53,6 @@ public class CsvToDatabaseApp {
             printAppHelp();
         }
     }
-
     private CommandLine parseArguments(String[] args) {
 
         Options options = getOptions();
@@ -121,11 +124,19 @@ public class CsvToDatabaseApp {
             .hasArg()
             .required()
             .build();
+        Option separator = Option
+            .builder("s")
+            .argName("SEPARATOR")
+            .longOpt("separator")
+            .desc("separator symbol")
+            .hasArg()
+            .build();
         options
             .addOption(csvFile)
             .addOption(tableName)
             .addOption(userName)
             .addOption(password)
+            .addOption(separator)
             .addOption(dbConnectionString);
         return options;
     }

@@ -27,7 +27,21 @@ public class DBService {
 //        PreparedStatement preparedStatement = connection.prepareStatement(updateQuery);
         PreparedStatement preparedStatement = connection.prepareStatement(insertQuery);
 
-        System.out.println(updateQuery);
+//        System.out.println(updateQuery);
+        long startTime = System.nanoTime();
+        preparedStatementExecution(records, preparedStatement, columnsCount);
+        long stopTime = System.nanoTime();
+        System.out.println((stopTime - startTime)/1000000000 + "seconds -Time to write csv to database");
+//        int[] ints = preparedStatement.executeBatch();
+//        for (int anInt : ints) {
+//            System.out.println(anInt);
+//        }
+        preparedStatement.close();
+        connection.close();
+    }
+
+    private void preparedStatementExecution(List<String[]> records, PreparedStatement preparedStatement, int columnsCount) throws SQLException {
+        int catcher = 0;
         for (final String[] record : records) {
             for (int i = 0; i < columnsCount; i++) {
                 preparedStatement.setString(i + 1, record[i]);
@@ -35,14 +49,12 @@ public class DBService {
             try {
                 preparedStatement.executeUpdate();
             } catch (SQLException e) {
+                catcher++;
+//                System.out.println("CATCH");
             }
+
         }
-//        int[] ints = preparedStatement.executeBatch();
-//        for (int anInt : ints) {
-//            System.out.println(anInt);
-//        }
-        preparedStatement.close();
-        connection.close();
+        System.out.println(catcher + " issue catched");
     }
 
     private String generateParamsForInsert(final int columnsCount) {
@@ -53,13 +65,14 @@ public class DBService {
         }
         return stringBuilder.toString();
     }
-//    UPDATE Messages SET description = ?, author = ? WHERE id = ? AND seq_num = ?"
-    private String generateParamsForUpdate(final int columnsCount,List<String> columnNames) {
+
+    //    UPDATE Messages SET description = ?, author = ? WHERE id = ? AND seq_num = ?"
+    private String generateParamsForUpdate(final int columnsCount, List<String> columnNames) {
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < columnsCount - 2; i++) {
             stringBuilder.append(columnNames.get(i)).append("='?', ");
         }
-        stringBuilder.append(columnNames.get(columnsCount-1)).append("='?' ");
+        stringBuilder.append(columnNames.get(columnsCount - 1)).append("='?' ");
         String id = columnNames.get(0);
         stringBuilder.append("WHERE ").append(id).append("='?'");
         return stringBuilder.toString();
