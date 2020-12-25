@@ -23,10 +23,7 @@ public class DBService {
         final String insertQuery = format("INSERT INTO %s VALUES(%s)", tableName, generateParamsForInsert(columnsCount));
         PreparedStatement preparedStatement = connection.prepareStatement(insertQuery);
 
-        long startTime = System.nanoTime();
         preparedStatementExecution(records, preparedStatement, columnsCount);
-        long stopTime = System.nanoTime();
-        System.out.println((stopTime - startTime) / 1000000000 + "seconds -Time to write csv to database");
 //        int[] ints = preparedStatement.executeBatch();
 //        for (int anInt : ints) {
 //            System.out.println(anInt);

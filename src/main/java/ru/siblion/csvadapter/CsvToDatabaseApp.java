@@ -6,6 +6,7 @@ import ru.siblion.csvadapter.cli.OptionsProvider;
 import ru.siblion.csvadapter.config.DataBaseConfig;
 import ru.siblion.csvadapter.service.impl.CsvServiceImpl;
 import ru.siblion.csvadapter.service.impl.DBService;
+import ru.siblion.csvadapter.util.PricessingTimer;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -40,15 +41,19 @@ public class CsvToDatabaseApp {
     }
 
     private List<String[]> readCsv(CsvServiceImpl csvServiceImpl) {
+        PricessingTimer pricessingTimer = new PricessingTimer();
+        pricessingTimer.start();
         long startTime = System.nanoTime();
         List<String[]> csvAsStringArr = csvServiceImpl.getRecords();
         long stopTime = System.nanoTime();
-        System.out.println((stopTime - startTime) / 1000000000 +
+        System.out.println(pricessingTimer.stop() +
             " seconds - Time to read csv / size:" + csvAsStringArr.size());
         return csvAsStringArr;
     }
 
     private void writeToDb(List<String[]> csvAsStringArr) {
+        PricessingTimer pricessingTimer = new PricessingTimer();
+        pricessingTimer.start();
         DataBaseConfig dataBaseConfig = new DataBaseConfig(
             argumentProvider.getDbConnectionString(),
             argumentProvider.getUsername(),
@@ -61,5 +66,6 @@ public class CsvToDatabaseApp {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        System.out.println(pricessingTimer.stop() + " seconds -Time to write csv to database");
     }
 }
