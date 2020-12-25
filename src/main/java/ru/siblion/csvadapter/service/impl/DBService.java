@@ -4,6 +4,7 @@ import ru.siblion.csvadapter.config.DataBaseConfig;
 import ru.siblion.csvadapter.util.QueryGeneratorUtil;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -18,25 +19,25 @@ public class DBService {
         this.dataBaseConfig = dataBaseConfig;
     }
 
-    public void insertIntoTable(List<String[]> records, final int columnsCount) throws SQLException {
+    public List<String[]>  insertIntoTable(List<String[]> records, final int columnsCount) throws SQLException {
 
         Connection connection = dataBaseConfig.getDataSource().getConnection();
         final String insertQuery = format("INSERT INTO %s VALUES(%s)", tableName, QueryGeneratorUtil.generateParamsForInsert(columnsCount));
         PreparedStatement preparedStatement = connection.prepareStatement(insertQuery);
 
-        preparedStatementExecution(records, preparedStatement, columnsCount);
+        List<String[]> strings = preparedStatementExecution(records, preparedStatement, columnsCount);
 //        int[] ints = preparedStatement.executeBatch();
 //        for (int anInt : ints) {
 //            System.out.println(anInt);
 //        }
         preparedStatement.close();
         connection.close();
+        return strings;
     }
 
     public void updateTable(List<String[]> records, final int columnsCount) {
-
-        try (Connection connection = dataBaseConfig.getDataSource().getConnection();) {
-
+        System.out.println("There is "+records.size()+" to update");
+        try (Connection connection = dataBaseConfig.getDataSource().getConnection()) {
             List<String> columnNames = getColumnNames(connection);
             final String updateQuery = format("UPDATE %s SET %s", tableName, QueryGeneratorUtil.generateParamsForUpdate(columnsCount, columnNames));
             System.out.println(updateQuery);
@@ -48,28 +49,39 @@ public class DBService {
     }
 
     private void executeUpdate(List<String[]> records, Connection connection, String updateQuery, int columnsCount) {
-        try {
-            PreparedStatement preparedStatement = connection.prepareStatement(updateQuery);
-            preparedStatementExecution(records, preparedStatement, columnsCount);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery);) {
+            for (final String[] record : records) {
+                for (int i = 0; i < columnsCount; i++) {
+                    preparedStatement.setString(i + 1, record[i]);
+                }
+                preparedStatement.setString(24, record[0]);
+                try {
+                    preparedStatement.executeUpdate();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    private void preparedStatementExecution(List<String[]> records, PreparedStatement preparedStatement, int columnsCount) throws SQLException {
+    private List<String[]> preparedStatementExecution(List<String[]> records, PreparedStatement preparedStatement, int columnsCount) throws SQLException {
         int catcher = 0;
+        List<String[]> stringsToUpdate = new ArrayList<>();
         for (final String[] record : records) {
             for (int i = 0; i < columnsCount; i++) {
                 preparedStatement.setString(i + 1, record[i]);
             }
-            preparedStatement.setString(24, record[0]);
             try {
                 preparedStatement.executeUpdate();
             } catch (SQLException e) {
+                stringsToUpdate.add(record);
                 catcher++;
             }
         }
         System.out.println(catcher + " issue catched");
+        return stringsToUpdate;
     }
 
     private List<String> getColumnNames(Connection connection) {

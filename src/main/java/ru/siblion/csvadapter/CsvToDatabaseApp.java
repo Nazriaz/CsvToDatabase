@@ -59,12 +59,13 @@ public class CsvToDatabaseApp {
         DBService dbService = new DBService(
             argumentProvider.getTableName(),
             dataBaseConfig);
-//        try {
-//            dbService.insertIntoTable(csvAsStringArr, 24);
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-        dbService.updateTable(csvAsStringArr, 24);
+        try {
+            List<String[]> strings = dbService.insertIntoTable(csvAsStringArr, 24);
+            dbService.updateTable(strings, 24);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         System.out.println(pricessingTimer.stop() + " seconds -Time to write csv to database");
     }
 }
