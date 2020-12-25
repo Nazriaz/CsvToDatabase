@@ -60,8 +60,8 @@ public class CsvToDatabaseApp {
             argumentProvider.getTableName(),
             dataBaseConfig);
         try {
-            List<String[]> strings = dbService.insertIntoTable(csvAsStringArr, 24);
-            dbService.updateTable(strings, 24);
+            List<String[]> strings = dbService.insertIntoTable(csvAsStringArr);
+            dbService.updateTable(strings);
         } catch (SQLException e) {
             e.printStackTrace();
         }

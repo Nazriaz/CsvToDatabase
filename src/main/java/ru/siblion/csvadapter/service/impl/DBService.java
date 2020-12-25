@@ -34,9 +34,10 @@ public class DBService {
         return strings;
     }
 
-    public void updateTable(List<String[]> records, final int columnsCount) {
+    public void updateTable(List<String[]> records) {
         System.out.println("There is " + records.size() + " to update");
         try (Connection connection = dataBaseConfig.getDataSource().getConnection()) {
+            int columnsCount = DbMetaDataUtil.getColumnCount(connection, tableName);
             List<String> columnNames = DbMetaDataUtil.getColumnNames(connection, tableName);
             final String updateQuery = format("UPDATE %s SET %s", tableName, QueryGeneratorUtil.generateParamsForUpdate(columnsCount, columnNames));
             System.out.println(updateQuery);
