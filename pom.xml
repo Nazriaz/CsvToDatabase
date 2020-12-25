@@ -48,7 +48,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>ru.siblion.csvadapter.CsvParser</mainClass>
+                            <mainClass>ru.siblion.csvadapter.CsvApp</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

@@ -1,6 +1,6 @@
 package ru.siblion.csvadapter;
 
-public class CsvParser {
+public class CsvApp {
     public static void main(String[] args) {
 
         CsvToDatabaseApp app = new CsvToDatabaseApp();
