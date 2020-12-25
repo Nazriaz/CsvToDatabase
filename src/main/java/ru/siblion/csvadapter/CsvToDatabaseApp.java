@@ -43,9 +43,7 @@ public class CsvToDatabaseApp {
     private List<String[]> readCsv(CsvServiceImpl csvServiceImpl) {
         PricessingTimer pricessingTimer = new PricessingTimer();
         pricessingTimer.start();
-        long startTime = System.nanoTime();
         List<String[]> csvAsStringArr = csvServiceImpl.getRecords();
-        long stopTime = System.nanoTime();
         System.out.println(pricessingTimer.stop() +
             " seconds - Time to read csv / size:" + csvAsStringArr.size());
         return csvAsStringArr;
@@ -61,11 +59,12 @@ public class CsvToDatabaseApp {
         DBService dbService = new DBService(
             argumentProvider.getTableName(),
             dataBaseConfig);
-        try {
-            dbService.insertIntoTable(csvAsStringArr, 24);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            dbService.insertIntoTable(csvAsStringArr, 24);
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+        dbService.updateTable(csvAsStringArr, 24);
         System.out.println(pricessingTimer.stop() + " seconds -Time to write csv to database");
     }
 }
