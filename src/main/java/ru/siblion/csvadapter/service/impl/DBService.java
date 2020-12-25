@@ -1,11 +1,13 @@
 package ru.siblion.csvadapter.service.impl;
 
 import ru.siblion.csvadapter.config.DataBaseConfig;
+import ru.siblion.csvadapter.util.DbMetaDataUtil;
 import ru.siblion.csvadapter.util.QueryGeneratorUtil;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import static java.lang.String.format;
@@ -19,26 +21,23 @@ public class DBService {
         this.dataBaseConfig = dataBaseConfig;
     }
 
-    public List<String[]>  insertIntoTable(List<String[]> records, final int columnsCount) throws SQLException {
+    public List<String[]> insertIntoTable(List<String[]> records) throws SQLException {
 
         Connection connection = dataBaseConfig.getDataSource().getConnection();
+        int columnsCount = DbMetaDataUtil.getColumnCount(connection, tableName);
         final String insertQuery = format("INSERT INTO %s VALUES(%s)", tableName, QueryGeneratorUtil.generateParamsForInsert(columnsCount));
         PreparedStatement preparedStatement = connection.prepareStatement(insertQuery);
 
         List<String[]> strings = preparedStatementExecution(records, preparedStatement, columnsCount);
-//        int[] ints = preparedStatement.executeBatch();
-//        for (int anInt : ints) {
-//            System.out.println(anInt);
-//        }
         preparedStatement.close();
         connection.close();
         return strings;
     }
 
     public void updateTable(List<String[]> records, final int columnsCount) {
-        System.out.println("There is "+records.size()+" to update");
+        System.out.println("There is " + records.size() + " to update");
         try (Connection connection = dataBaseConfig.getDataSource().getConnection()) {
-            List<String> columnNames = getColumnNames(connection);
+            List<String> columnNames = DbMetaDataUtil.getColumnNames(connection, tableName);
             final String updateQuery = format("UPDATE %s SET %s", tableName, QueryGeneratorUtil.generateParamsForUpdate(columnsCount, columnNames));
             System.out.println(updateQuery);
             executeUpdate(records, connection, updateQuery, columnsCount);
@@ -54,7 +53,7 @@ public class DBService {
                 for (int i = 0; i < columnsCount; i++) {
                     preparedStatement.setString(i + 1, record[i]);
                 }
-                preparedStatement.setString(24, record[0]);
+                preparedStatement.setString(columnsCount, record[0]);
                 try {
                     preparedStatement.executeUpdate();
                 } catch (SQLException e) {
@@ -66,7 +65,8 @@ public class DBService {
         }
     }
 
-    private List<String[]> preparedStatementExecution(List<String[]> records, PreparedStatement preparedStatement, int columnsCount) throws SQLException {
+    private List<String[]> preparedStatementExecution(List<String[]> records, PreparedStatement preparedStatement,
+                                                      int columnsCount) throws SQLException {
         int catcher = 0;
         List<String[]> stringsToUpdate = new ArrayList<>();
         for (final String[] record : records) {
@@ -82,20 +82,5 @@ public class DBService {
         }
         System.out.println(catcher + " issue catched");
         return stringsToUpdate;
-    }
-
-    private List<String> getColumnNames(Connection connection) {
-        final String query = format("SELECT * FROM %s FETCH FIRST 1 ROWS ONLY", tableName);
-        LinkedList<String> columnNames = new LinkedList<>();
-        try (ResultSet rs = connection.createStatement().executeQuery(query)) {
-            ResultSetMetaData metaData = rs.getMetaData();
-            int columnCount = metaData.getColumnCount();
-            for (int i = 0; i < columnCount; i++) {
-                columnNames.add(metaData.getColumnName(i + 1));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return columnNames;
     }
 }
