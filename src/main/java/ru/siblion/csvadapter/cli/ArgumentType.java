@@ -21,10 +21,4 @@ public enum ArgumentType {
     public void setArgumentName(String argumentName) {
         this.argumentName = argumentName;
     }
-    //    public static final String PATH_TO_CSV_FILE = "csv";
-//    public static final String DB_CONNECTION_STRING = "database-connection-string";
-//    public static final String TABLE_NAME = "table-name";
-//    public static final String USERNAME = "username";
-//    public static final String PASSWORD = "password";
-//    public static final String SEPARATOR = "SEPARATOR";
 }

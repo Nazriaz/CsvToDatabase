@@ -29,22 +29,37 @@ public class CsvToDatabaseApp {
             if (separatorProvidedWithArgs) {
                 csvServiceImpl.setSeparator(argumentProvider.getSeparator());
             }
-            List<String[]> listArr;
-            long startTime = System.nanoTime();
-            listArr = csvServiceImpl.getRecords();
-            long stopTime = System.nanoTime();
-            System.out.println((stopTime - startTime) / 1000000000 +
-                " seconds - Time to read csv / size:" + listArr.size());
-            DataBaseConfig dataBaseConfig = new DataBaseConfig(argumentProvider.getDbConnectionString(),
-                argumentProvider.getUsername(), argumentProvider.getPassword());
-            DBService dbService = new DBService(argumentProvider.getTableName(), dataBaseConfig);
-            try {
-                dbService.insertIntoTable(listArr, 24);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+
+            List<String[]> csvAsStringArr = readCsv(csvServiceImpl);
+
+            writeToDb(csvAsStringArr);
+
         } else {
             helpPrinter.printAppHelp();
+        }
+    }
+
+    private List<String[]> readCsv(CsvServiceImpl csvServiceImpl) {
+        long startTime = System.nanoTime();
+        List<String[]> csvAsStringArr = csvServiceImpl.getRecords();
+        long stopTime = System.nanoTime();
+        System.out.println((stopTime - startTime) / 1000000000 +
+            " seconds - Time to read csv / size:" + csvAsStringArr.size());
+        return csvAsStringArr;
+    }
+
+    private void writeToDb(List<String[]> csvAsStringArr) {
+        DataBaseConfig dataBaseConfig = new DataBaseConfig(
+            argumentProvider.getDbConnectionString(),
+            argumentProvider.getUsername(),
+            argumentProvider.getPassword());
+        DBService dbService = new DBService(
+            argumentProvider.getTableName(),
+            dataBaseConfig);
+        try {
+            dbService.insertIntoTable(csvAsStringArr, 24);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }

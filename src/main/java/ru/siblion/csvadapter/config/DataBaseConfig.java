@@ -15,7 +15,7 @@ public class DataBaseConfig {
         this.password = password;
     }
 
-    public DataSource dataSource() {
+    public DataSource getDataSource() {
 
         JdbcDataSource jdbcDataSource = new JdbcDataSource();
         jdbcDataSource.setURL(dbConnectionString);

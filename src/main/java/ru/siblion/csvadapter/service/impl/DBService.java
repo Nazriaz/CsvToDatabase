@@ -9,35 +9,53 @@ import java.util.List;
 import static java.lang.String.format;
 
 public class DBService {
-    private String table;
+    private String tableName;
     private DataBaseConfig dataBaseConfig;
 
-    public DBService(String table, DataBaseConfig dataBaseConfig) {
-        this.table = table;
+    public DBService(String tableName, DataBaseConfig dataBaseConfig) {
+        this.tableName = tableName;
         this.dataBaseConfig = dataBaseConfig;
     }
 
     public void insertIntoTable(List<String[]> records, final int columnsCount) throws SQLException {
 
-        Connection connection = dataBaseConfig.dataSource().getConnection();
-        final String insertQuery = format("INSERT INTO %s VALUES(%s)", table, generateParamsForInsert(columnsCount));
-        List<String> columnNames = getColumnNames(connection);
-        final String updateQuery = format("UPDATE %s SET %s", table, generateParamsForUpdate(columnsCount, columnNames));
-
-//        PreparedStatement preparedStatement = connection.prepareStatement(updateQuery);
+        Connection connection = dataBaseConfig.getDataSource().getConnection();
+        final String insertQuery = format("INSERT INTO %s VALUES(%s)", tableName, generateParamsForInsert(columnsCount));
         PreparedStatement preparedStatement = connection.prepareStatement(insertQuery);
 
-//        System.out.println(updateQuery);
         long startTime = System.nanoTime();
         preparedStatementExecution(records, preparedStatement, columnsCount);
         long stopTime = System.nanoTime();
-        System.out.println((stopTime - startTime)/1000000000 + "seconds -Time to write csv to database");
+        System.out.println((stopTime - startTime) / 1000000000 + "seconds -Time to write csv to database");
 //        int[] ints = preparedStatement.executeBatch();
 //        for (int anInt : ints) {
 //            System.out.println(anInt);
 //        }
         preparedStatement.close();
         connection.close();
+    }
+
+    public void updateTable(List<String[]> records, final int columnsCount) {
+
+        try (Connection connection = dataBaseConfig.getDataSource().getConnection();) {
+
+            List<String> columnNames = getColumnNames(connection);
+            final String updateQuery = format("UPDATE %s SET %s", tableName, generateParamsForUpdate(columnsCount, columnNames));
+            System.out.println(updateQuery);
+            executeUpdate(records, connection, updateQuery, columnsCount);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void executeUpdate(List<String[]> records, Connection connection, String updateQuery, int columnsCount) {
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(updateQuery);
+            preparedStatementExecution(records, preparedStatement, columnsCount);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     private void preparedStatementExecution(List<String[]> records, PreparedStatement preparedStatement, int columnsCount) throws SQLException {
@@ -50,9 +68,7 @@ public class DBService {
                 preparedStatement.executeUpdate();
             } catch (SQLException e) {
                 catcher++;
-//                System.out.println("CATCH");
             }
-
         }
         System.out.println(catcher + " issue catched");
     }
@@ -79,13 +95,13 @@ public class DBService {
     }
 
     private List<String> getColumnNames(Connection connection) {
-        final String query = format("SELECT * FROM %s FETCH FIRST 1 ROWS ONLY", table);
+        final String query = format("SELECT * FROM %s FETCH FIRST 1 ROWS ONLY", tableName);
         LinkedList<String> columnNames = new LinkedList<>();
         try (ResultSet rs = connection.createStatement().executeQuery(query)) {
-            ResultSetMetaData rsmd = rs.getMetaData();
-            int columnCount = rsmd.getColumnCount();
+            ResultSetMetaData metaData = rs.getMetaData();
+            int columnCount = metaData.getColumnCount();
             for (int i = 0; i < columnCount; i++) {
-                columnNames.add(rsmd.getColumnName(i + 1));
+                columnNames.add(metaData.getColumnName(i + 1));
             }
         } catch (SQLException e) {
             e.printStackTrace();
