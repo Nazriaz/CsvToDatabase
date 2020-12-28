@@ -4,13 +4,10 @@ import ru.siblion.csvadapter.cli.ArgumentProvider;
 import ru.siblion.csvadapter.cli.HelpPrinter;
 import ru.siblion.csvadapter.cli.OptionsProvider;
 import ru.siblion.csvadapter.config.ConnectionPool;
-import ru.siblion.csvadapter.config.DataBaseConfig;
 import ru.siblion.csvadapter.service.impl.CsvServiceImpl;
-import ru.siblion.csvadapter.service.impl.DBService;
 import ru.siblion.csvadapter.service.impl.NewDBService;
 import ru.siblion.csvadapter.util.ProcessingTimer;
 
-import java.sql.SQLException;
 import java.util.List;
 
 
@@ -42,7 +39,7 @@ public class CsvToDatabaseApp {
 //            DBService dbService = new DBService(
 //                argumentProvider.getTableName(),
 //                dataBaseConfig);
-            NewDBService newDBService = new NewDBService(argumentProvider.getTableName(), dataBaseConfig);
+            NewDBService newDBService = new NewDBService(argumentProvider.getTableName());
             newDBService.createTempTable();
 
             List<String[]> csvAsStringArr = readCsv(csvServiceImpl);
@@ -50,6 +47,7 @@ public class CsvToDatabaseApp {
             newDBService.insertToNewTableQuery(csvAsStringArr);
             newDBService.prepareMergeTablesQuery();
 //            writeToDb(strings);
+            ConnectionPool.closeConnections();
 
         } else {
             helpPrinter.printAppHelp();
@@ -65,23 +63,4 @@ public class CsvToDatabaseApp {
         return csvAsStringArr;
     }
 
-    private void writeToDb(List<String[]> csvAsStringArr) {
-        ProcessingTimer processingTimer = new ProcessingTimer();
-        processingTimer.start();
-        DataBaseConfig dataBaseConfig = new DataBaseConfig(
-            argumentProvider.getDbConnectionString(),
-            argumentProvider.getUsername(),
-            argumentProvider.getPassword());
-        DBService dbService = new DBService(
-            argumentProvider.getTableName(),
-            dataBaseConfig);
-        try {
-            List<String[]> strings = dbService.insertIntoTable(csvAsStringArr);
-            dbService.updateTable(strings);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        System.out.println(processingTimer.stop() + " seconds -Time to write csv to database");
-    }
 }

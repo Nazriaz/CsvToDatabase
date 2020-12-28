@@ -24,7 +24,7 @@ public class ArgumentProvider {
     public void getArguments(String[] args) {
         CommandLine commandLine = parseArguments(args);
 
-        System.out.println(commandLine.getOptionValue(ArgumentType.PATH_TO_CSV_FILE.getArgumentName()));
+//        System.out.println(commandLine.getOptionValue(ArgumentType.PATH_TO_CSV_FILE.getArgumentName()));
         csvFilePath = commandLine.getOptionValue(ArgumentType.PATH_TO_CSV_FILE.getArgumentName());
         dbConnectionString = commandLine.getOptionValue(ArgumentType.DB_CONNECTION_STRING.getArgumentName());
         tableName = commandLine.getOptionValue(ArgumentType.TABLE_NAME.getArgumentName());

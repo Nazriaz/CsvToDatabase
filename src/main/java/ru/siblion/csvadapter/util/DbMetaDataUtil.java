@@ -1,5 +1,7 @@
 package ru.siblion.csvadapter.util;
 
+import ru.siblion.csvadapter.config.ConnectionPool;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -10,10 +12,11 @@ import java.util.List;
 import static java.lang.String.format;
 
 public class DbMetaDataUtil {
-    public static List<String> getColumnNames(Connection connection, String tableName) {
+    public static List<String> getColumnNames(String tableName) {
         final String query = format("SELECT * FROM %s FETCH FIRST 1 ROWS ONLY", tableName);
         LinkedList<String> columnNames = new LinkedList<>();
-        try (ResultSet rs = connection.createStatement().executeQuery(query)) {
+        try (final Connection connection = ConnectionPool.getConnection();
+             ResultSet rs = connection.createStatement().executeQuery(query)) {
             ResultSetMetaData metaData = rs.getMetaData();
             int columnCount = metaData.getColumnCount();
             for (int i = 0; i < columnCount; i++) {
@@ -24,10 +27,11 @@ public class DbMetaDataUtil {
         }
         return columnNames;
     }
-    public static List<String> getColumnNamesWithoutId(Connection connection, String tableName) {
+    public static List<String> getColumnNamesWithoutId(String tableName) {
         final String query = format("SELECT * FROM %s FETCH FIRST 1 ROWS ONLY", tableName);
         LinkedList<String> columnNames = new LinkedList<>();
-        try (ResultSet rs = connection.createStatement().executeQuery(query)) {
+        try (final Connection connection = ConnectionPool.getConnection();
+             ResultSet rs = connection.createStatement().executeQuery(query)) {
             ResultSetMetaData metaData = rs.getMetaData();
             int columnCount = metaData.getColumnCount();
             for (int i = 1; i < columnCount; i++) {
@@ -39,21 +43,24 @@ public class DbMetaDataUtil {
         return columnNames;
     }
 
-    public static int getColumnCount(Connection connection, String tableName) {
+    public static int getColumnCount(String tableName) {
         int columnCount = 0;
         final String query = format("SELECT * FROM %s FETCH FIRST 1 ROWS ONLY", tableName);
-        try (ResultSet rs = connection.createStatement().executeQuery(query)) {
+        try (final Connection connection = ConnectionPool.getConnection();
+             ResultSet rs = connection.createStatement().executeQuery(query)) {
             ResultSetMetaData metaData = rs.getMetaData();
             columnCount = metaData.getColumnCount();
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return columnCount;
     }
-    public static List<String> getColumnTypeNamesWithoutId(Connection connection,String tableName){
+    public static List<String> getColumnTypeNamesWithoutId(String tableName){
         final String query = format("SELECT * FROM %s FETCH FIRST 1 ROWS ONLY", tableName);
         LinkedList<String> columnTypeNames = new LinkedList<>();
-        try (ResultSet rs = connection.createStatement().executeQuery(query)) {
+        try (final Connection connection = ConnectionPool.getConnection();
+             ResultSet rs = connection.createStatement().executeQuery(query)) {
             ResultSetMetaData metaData = rs.getMetaData();
             int columnCount = metaData.getColumnCount();
             for (int i = 1; i < columnCount; i++) {
@@ -64,10 +71,11 @@ public class DbMetaDataUtil {
         }
         return columnTypeNames;
     }
-    public static int[] getColumnMaxSize(Connection connection,String tableName){
+    public static int[] getColumnMaxSize(String tableName){
         final String query = format("SELECT * FROM %s FETCH FIRST 1 ROWS ONLY", tableName);
         int[] columnMaxSize=new int[0];
-        try (ResultSet rs = connection.createStatement().executeQuery(query)) {
+        try (final Connection connection = ConnectionPool.getConnection();
+             ResultSet rs = connection.createStatement().executeQuery(query)) {
             ResultSetMetaData metaData = rs.getMetaData();
             int columnCount = metaData.getColumnCount();
             columnMaxSize = new int[columnCount-1];
@@ -76,7 +84,6 @@ public class DbMetaDataUtil {
                 columnMaxSize[i-1]= columnDisplaySize;
             }
         } catch (SQLException e) {
-
             e.printStackTrace();
         }
         return columnMaxSize;

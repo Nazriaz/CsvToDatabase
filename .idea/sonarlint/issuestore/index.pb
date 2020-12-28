@@ -17,10 +17,6 @@ l
 <src/main/java/ru/siblion/csvadapter/cli/OptionsProvider.java,4/a/4a19fd0a4ed2a3c6a9a58bdde5a156120ea08d24
 _
 /src/main/java/ru/siblion/csvadapter/CsvApp.java,f/1/f1eac380123e3189676171801c5f61527f0ecca0
-n
->src/main/java/ru/siblion/csvadapter/config/DataBaseConfig.java,5/9/59363b2e8127c665485e1864ffa0e1ba152baa06
-o
-?src/main/java/ru/siblion/csvadapter/service/impl/DBService.java,5/d/5d2b94ba056db8b89d7c8212a0092c253393ca44
 l
 <src/main/java/ru/siblion/csvadapter/util/DbMetaDataUtil.java,d/6/d6dbafe21313d70485a1eb47d76f77dc85e1167d
 p
