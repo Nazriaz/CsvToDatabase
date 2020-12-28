@@ -11,6 +11,7 @@ public class ConnectionPool {
     private static HikariDataSource ds;
 
     public static void configure(String dbConnectionString, String username, String password){
+        //todo меня драйвер тут но можно и тоже замутить чтоб в пропертях передавался
 //        config.setDriverClassName("org.h2.Driver");
         config.setDriverClassName("org.postgresql.Driver");
         config.setJdbcUrl( dbConnectionString );

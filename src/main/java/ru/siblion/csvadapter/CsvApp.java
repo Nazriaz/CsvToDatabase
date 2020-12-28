@@ -2,6 +2,7 @@ package ru.siblion.csvadapter;
 
 public class CsvApp {
     public static void main(String[] args) {
+        //todo тут можно подменить арги нужно ещё подменить пароль к бд в ConnectionPool
 //        args=new String[4];
 //        args[0]="-c/home/nazriaz/Downloads/Telegram Desktop/базы csv/íáºδ csv/vk2.csv";
 //        args[0]="-c/home/nazriaz/Downloads/Telegram Desktop/базы csv/íáºδ csv/vk2 (3-я копия).csv";
