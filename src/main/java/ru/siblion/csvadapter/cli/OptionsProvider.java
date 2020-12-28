@@ -43,7 +43,7 @@ public class OptionsProvider {
             .longOpt("password")
             .desc("database user password")
             .hasArg()
-            .required()
+//            .required()
             .build();
         Option separator = Option
             .builder("s")

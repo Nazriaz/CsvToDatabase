@@ -6,6 +6,7 @@ import ru.siblion.csvadapter.util.QueryGeneratorUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,10 +23,14 @@ public class DBService {
     }
 
     public List<String[]> insertIntoTable(List<String[]> records) throws SQLException {
+        boolean b = chechRowPresent();
 
         Connection connection = dataBaseConfig.getDataSource().getConnection();
         int columnsCount = DbMetaDataUtil.getColumnCount(connection, tableName);
-        final String insertQuery = format("INSERT INTO %s VALUES(%s)", tableName, QueryGeneratorUtil.generateParamsForInsert(columnsCount));
+        List<String> columnNames = DbMetaDataUtil.getColumnNamesWithoutId(connection, tableName);
+        //todo
+        final String insertQuery = format("INSERT INTO %s (%s) VALUES(%s)", tableName,columnNames.toString().substring(1,columnNames.toString().length()-1), QueryGeneratorUtil.generateParamsForInsert(columnsCount));
+        System.out.println(insertQuery);
         PreparedStatement preparedStatement = connection.prepareStatement(insertQuery);
 
         List<String[]> strings = preparedStatementExecution(records, preparedStatement, columnsCount);
@@ -38,7 +43,7 @@ public class DBService {
         System.out.println("There is " + records.size() + " to update");
         try (Connection connection = dataBaseConfig.getDataSource().getConnection()) {
             int columnsCount = DbMetaDataUtil.getColumnCount(connection, tableName);
-            List<String> columnNames = DbMetaDataUtil.getColumnNames(connection, tableName);
+            List<String> columnNames = DbMetaDataUtil.getColumnNamesWithoutId(connection, tableName);
             final String updateQuery = format("UPDATE %s SET %s", tableName, QueryGeneratorUtil.generateParamsForUpdate(columnsCount, columnNames));
             System.out.println(updateQuery);
             executeUpdate(records, connection, updateQuery, columnsCount);
@@ -46,6 +51,18 @@ public class DBService {
             e.printStackTrace();
         }
 
+    }
+    boolean chechRowPresent(){
+        try (Connection connection = dataBaseConfig.getDataSource().getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM VK_USER_IVAN WHERE URL=?");
+            preparedStatement.setString(1,"https://vk.com/id1");
+            preparedStatement.execute();
+            ResultSet resultSet = preparedStatement.getResultSet();
+            System.out.println("result set " + resultSet);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     private void executeUpdate(List<String[]> records, Connection connection, String updateQuery, int columnsCount) {
@@ -71,7 +88,8 @@ public class DBService {
         int catcher = 0;
         List<String[]> stringsToUpdate = new ArrayList<>();
         for (final String[] record : records) {
-            for (int i = 0; i < columnsCount; i++) {
+            for (int i = 0; i < columnsCount-1; i++) {
+//            for (int i = 0; i < columnsCount; i++) {
                 preparedStatement.setString(i + 1, record[i]);
             }
             try {

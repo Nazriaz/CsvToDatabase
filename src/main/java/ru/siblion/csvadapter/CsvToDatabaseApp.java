@@ -3,10 +3,12 @@ package ru.siblion.csvadapter;
 import ru.siblion.csvadapter.cli.ArgumentProvider;
 import ru.siblion.csvadapter.cli.HelpPrinter;
 import ru.siblion.csvadapter.cli.OptionsProvider;
+import ru.siblion.csvadapter.config.ConnectionPool;
 import ru.siblion.csvadapter.config.DataBaseConfig;
 import ru.siblion.csvadapter.service.impl.CsvServiceImpl;
 import ru.siblion.csvadapter.service.impl.DBService;
-import ru.siblion.csvadapter.util.PricessingTimer;
+import ru.siblion.csvadapter.service.impl.NewDBService;
+import ru.siblion.csvadapter.util.ProcessingTimer;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -30,10 +32,24 @@ public class CsvToDatabaseApp {
             if (separatorProvidedWithArgs) {
                 csvServiceImpl.setSeparator(argumentProvider.getSeparator());
             }
+//            DataBaseConfig dataBaseConfig = new DataBaseConfig(
+//                argumentProvider.getDbConnectionString(),
+//                argumentProvider.getUsername(),
+//                argumentProvider.getPassword());
+            ConnectionPool.configure(argumentProvider.getDbConnectionString(),
+                argumentProvider.getUsername(),
+                argumentProvider.getPassword());
+//            DBService dbService = new DBService(
+//                argumentProvider.getTableName(),
+//                dataBaseConfig);
+            NewDBService newDBService = new NewDBService(argumentProvider.getTableName(), dataBaseConfig);
+            newDBService.createTempTable();
 
             List<String[]> csvAsStringArr = readCsv(csvServiceImpl);
 
-            writeToDb(csvAsStringArr);
+            newDBService.insertToNewTableQuery(csvAsStringArr);
+            newDBService.prepareMergeTablesQuery();
+//            writeToDb(strings);
 
         } else {
             helpPrinter.printAppHelp();
@@ -41,17 +57,17 @@ public class CsvToDatabaseApp {
     }
 
     private List<String[]> readCsv(CsvServiceImpl csvServiceImpl) {
-        PricessingTimer pricessingTimer = new PricessingTimer();
-        pricessingTimer.start();
+        ProcessingTimer processingTimer = new ProcessingTimer();
+        processingTimer.start();
         List<String[]> csvAsStringArr = csvServiceImpl.getRecords();
-        System.out.println(pricessingTimer.stop() +
+        System.out.println(processingTimer.stop() +
             " seconds - Time to read csv / size:" + csvAsStringArr.size());
         return csvAsStringArr;
     }
 
     private void writeToDb(List<String[]> csvAsStringArr) {
-        PricessingTimer pricessingTimer = new PricessingTimer();
-        pricessingTimer.start();
+        ProcessingTimer processingTimer = new ProcessingTimer();
+        processingTimer.start();
         DataBaseConfig dataBaseConfig = new DataBaseConfig(
             argumentProvider.getDbConnectionString(),
             argumentProvider.getUsername(),
@@ -66,6 +82,6 @@ public class CsvToDatabaseApp {
             e.printStackTrace();
         }
 
-        System.out.println(pricessingTimer.stop() + " seconds -Time to write csv to database");
+        System.out.println(processingTimer.stop() + " seconds -Time to write csv to database");
     }
 }

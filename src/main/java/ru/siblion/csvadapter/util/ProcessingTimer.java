@@ -1,6 +1,6 @@
 package ru.siblion.csvadapter.util;
 
-public class PricessingTimer {
+public class ProcessingTimer {
     private long startTime;
     public void start(){
         this.startTime=System.nanoTime();
